@@ -1,4 +1,4 @@
-#include <torch/extension.h>
+#include <torch/all.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <c10/cuda/CUDAGuard.h>
 
@@ -262,7 +262,7 @@ void moe_align_block_size(torch::Tensor topk_ids, int64_t num_experts,
               torch::empty({num_experts + 1}, options_int);
 
           auto kernel =
-              vllm::moe::moe_align_block_size_global_mem_kernel<scalar_t>;
+              vllm::moe_align_block_size_global_mem_kernel<scalar_t>;
           kernel<<<1, num_thread, 0, stream>>>(
               topk_ids.data_ptr<scalar_t>(),
               sorted_token_ids.data_ptr<int32_t>(),
@@ -276,7 +276,7 @@ void moe_align_block_size(torch::Tensor topk_ids, int64_t num_experts,
         topk_ids.scalar_type(), "moe_align_block_size_kernel", [&] {
           // set dynamic shared mem
           auto kernel =
-              vllm::moe::moe_align_block_size_kernel<scalar_t, uint16_t>;
+              vllm::moe_align_block_size_kernel<scalar_t, uint16_t>;
           AT_CUDA_CHECK(VLLM_DevFuncAttribute_SET_MaxDynamicSharedMemorySize(
               (void*)kernel, shared_mem_i16));
           kernel<<<1, num_thread, shared_mem_i16, stream>>>(
@@ -290,7 +290,7 @@ void moe_align_block_size(torch::Tensor topk_ids, int64_t num_experts,
     VLLM_DISPATCH_INTEGRAL_TYPES(
         topk_ids.scalar_type(), "moe_align_block_size_kernel", [&] {
           auto kernel =
-              vllm::moe::moe_align_block_size_kernel<scalar_t, int32_t>;
+              vllm::moe_align_block_size_kernel<scalar_t, int32_t>;
           AT_CUDA_CHECK(VLLM_DevFuncAttribute_SET_MaxDynamicSharedMemorySize(
               (void*)kernel, shared_mem_i32));
           kernel<<<1, num_thread, shared_mem_i32, stream>>>(
@@ -318,7 +318,7 @@ void moe_sum(torch::Tensor& input,   // [num_tokens, topk, hidden_size]
   switch (topk) {
     case 2:
       VLLM_DISPATCH_FLOATING_TYPES(input.scalar_type(), "moe_sum_kernel", [&] {
-        vllm::moe::moe_sum_kernel<scalar_t, 2><<<grid, block, 0, stream>>>(
+        vllm::moe_sum_kernel<scalar_t, 2><<<grid, block, 0, stream>>>(
             output.data_ptr<scalar_t>(), input.data_ptr<scalar_t>(),
             hidden_size);
       });
@@ -326,7 +326,7 @@ void moe_sum(torch::Tensor& input,   // [num_tokens, topk, hidden_size]
 
     case 3:
       VLLM_DISPATCH_FLOATING_TYPES(input.scalar_type(), "moe_sum_kernel", [&] {
-        vllm::moe::moe_sum_kernel<scalar_t, 3><<<grid, block, 0, stream>>>(
+        vllm::moe_sum_kernel<scalar_t, 3><<<grid, block, 0, stream>>>(
             output.data_ptr<scalar_t>(), input.data_ptr<scalar_t>(),
             hidden_size);
       });
@@ -334,7 +334,7 @@ void moe_sum(torch::Tensor& input,   // [num_tokens, topk, hidden_size]
 
     case 4:
       VLLM_DISPATCH_FLOATING_TYPES(input.scalar_type(), "moe_sum_kernel", [&] {
-        vllm::moe::moe_sum_kernel<scalar_t, 4><<<grid, block, 0, stream>>>(
+        vllm::moe_sum_kernel<scalar_t, 4><<<grid, block, 0, stream>>>(
             output.data_ptr<scalar_t>(), input.data_ptr<scalar_t>(),
             hidden_size);
       });
